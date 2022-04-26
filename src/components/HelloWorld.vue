@@ -1,40 +1,71 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    <div>Search</div>
+    <input type="text" v-model="searchTerm"/><br/>
+    <button @click="search">Search</button><br/>
+    <!-- <iframe v-if="searchRes" :src="`https://www.2embed.ru/embed/imdb/tv?id=${searchRes.imdbID}&s=9&e=10`"/> -->
+    <template>
+      <ul v-for="(season, seasonIndex) in series.seasons" :key="seasonIndex">
+        <li v-for="(episodes, index) in season.episodes.reverse()" :key="index">
+          S{{ episodes.season }}E{{ index+1 }} - {{ new Date(episodes.airstamp) }}
+        </li>
+      </ul>
+    </template>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
+  name: '',
+  data: () => {
+    return {
+      series: {},
+      searchTerm: '',
+      searchRes: null,
+      apiKey: 'ed97152c'
+    }
+  },
+  async mounted () {
+//     let response = await this.getReq(`'https://api.tvmaze.com/singlesearch/shows?q=the%20blacklist&embed=episodes'`);
+//     if (response) {
+// this.series = {
+//       image: response.image.medium,
+//       summary: response.summary,
+//       schedule: response.schedule,
+//       seasons: {}
+//     };
+//     let episodes = response._embedded.episodes;
+//     episodes.forEach((e) => {
+//       if (this.series.seasons[`s${e.season}`]){
+//         if (this.series.seasons[`s${e.season}`].episodes) {
+//           this.series.seasons[`s${e.season}`].episodes.push(e);
+//         } else {
+//           this.series.seasons[`s${e.season}`].episodes = [];
+//           this.series.seasons[`s${e.season}`].episodes.push(e);
+//         }
+//       } else {
+//         this.series.seasons[`s${e.season}`] = {};
+//         if (this.series.seasons[`s${e.season}`].episodes) {
+//           this.series.seasons[`s${e.season}`].episodes.push(e);
+//         } else {
+//           this.series.seasons[`s${e.season}`].episodes = [];
+//           this.series.seasons[`s${e.season}`].episodes.push(e);
+//         }
+//       }
+//     })
+//     }
+    
+  },
+  methods: {
+    async getReq (url) {
+      return fetch(url, {proxy: 'localhost:8080'}).then(res => res.json());
+    },
+    async search () {
+      const url = `http://www.omdbapi.com/?t=${this.searchTerm.replace(' ', '+')}&apikey=${this.apiKey}`;
+      let response = await this.getReq(url);
+      console.log(response.imdbID)
+      this.searchRes = response;
+    }
   }
 }
 </script>
