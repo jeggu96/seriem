@@ -9,7 +9,7 @@
       </video>
     </div>
     <h3 @click="englishIpl=!englishIpl">ENGLISH</h3>
-    <iframe v-show="englishIpl" allow="autoplay 'none'" autoplay="0" autostart="false" width="600" height="500" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen  src="http://c2.hitcric.live/" scrolling="no"></iframe>
+    <iframe v-show="englishIpl" allow="autoplay 'none'" autoplay="0" autostart="false" width="600" height="500" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen  src="https://c2.hitcric.live/" scrolling="no"></iframe>
     <br><br>
     <div>
       <input type="text" v-model="searchTerm" /><br>
@@ -90,7 +90,7 @@ export default {
       return fetch(url, {proxy: 'localhost:8080'}).then(res => res.json());
     },
     async getImdbId () {
-      const url = `http://www.omdbapi.com/?t=${this.searchTerm.replace(' ', '+')}&apikey=${this.apiKey}`;
+      const url = `https://www.omdbapi.com/?t=${this.searchTerm.replace(' ', '+')}&apikey=${this.apiKey}`;
       let response = await this.getReq(url);
       const seriesData = await this.getReq(`https://api.tvmaze.com/singlesearch/shows?q=${this.searchTerm.replace(' ', '%20')}&embed=episodes`);
       if (seriesData) {
