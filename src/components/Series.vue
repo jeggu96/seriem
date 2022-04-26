@@ -11,23 +11,45 @@
     <h3 @click="englishIpl=!englishIpl">ENGLISH</h3>
     <iframe v-show="englishIpl" allow="autoplay 'none'" autoplay="0" autostart="false" width="600" height="500" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen  src="https://c2.hitcric.live/" scrolling="no"></iframe>
     <br><br>
-    <div>
-      <input type="text" v-model="searchTerm" /><br>
-      <button @click="getImdbId" @keyup.enter="getImdbId">SEARCH</button>
-    </div>
-    <br><br>
-     <iframe
-      v-if="selectedEpisode.season" 
-      :src="`https://www.2embed.ru/embed/imdb/tv?id=${searchData.imdbId}&s=${selectedEpisode.season}&e=${selectedEpisode.episode}`"
-      width="900"
-      height="500"/>
+    <select v-model="searchType">
+      <option disabled value="">Please select one</option>
+      <option>Movies</option>
+      <option>Series</option>
+    </select>
+    <template v-if="searchType === 'Movies'">
+      <div>
+        <input type="text" v-model="searchTerm" /><br>
+        <button @click="searchMovies" @keyup.enter="searchMovies">SEARCH</button>
+      </div>
       <br><br>
-    <ul v-for="(season, seasonIndex) in searchData.seasons" :key="seasonIndex">
-      Season {{ season.number }}
-      <li v-for="(episodes, index) in season.episodes.reverse()" :key="index">
-        <button @click="playEpisode(season.number, index+1)">E{{ index+1 }}</button>
-      </li>
-    </ul>
+      <iframe
+        v-if="searchData"
+        :src="`https://www.2embed.ru/embed/imdb/movie?id=${searchData}`"
+        width="900"
+        height="500"/>
+    </template>
+    <template v-if="searchType === 'Series'">
+      <div>
+        <input type="text" v-model="searchTerm" /><br>
+        <button @click="searchSeries" @keyup.enter="searchSeries">SEARCH</button>
+      </div>
+      <br><br>
+      <iframe
+        v-if="selectedEpisode && selectedEpisode.season" 
+        :src="`https://www.2embed.ru/embed/imdb/tv?id=${searchData.imdbId}&s=${selectedEpisode.season}&e=${selectedEpisode.episode}`"
+        width="900"
+        height="500"/>
+        <br><br>
+        <template v-if="searchData">
+          <ul v-for="(season, seasonIndex) in searchData.seasons" :key="seasonIndex">
+            Season {{ season.number }}
+            <li v-for="(episode, index) in season.episodes.reverse()" :key="index">
+              <button @click="playEpisode(season.number, index+1)" :disabled="dateDiffInDays(new Date(episode.airstamp), new Date()) <= 0">E{{ index+1 }}</button>
+            </li>
+          </ul>  
+        </template>
+    </template>
+    
     <!-- <div v-for="(serie, index) in seriesData" :key="index">
       <h3>{{`${serie.name} Latest Episode`}}</h3>
       <iframe
@@ -63,8 +85,10 @@ export default {
       ],
       seriesData: [],
       searchTerm: '',
-      searchData: {},
-      selectedEpisode: {}
+      searchData: null,
+      selectedEpisode: {},
+      selectedMovie: '',
+      searchType: ''
     }
   },
   computed: {
@@ -89,7 +113,7 @@ export default {
     async getReq (url) {
       return fetch(url, {proxy: 'localhost:8080'}).then(res => res.json());
     },
-    async getImdbId () {
+    async searchSeries () {
       const url = `https://www.omdbapi.com/?t=${this.searchTerm.replace(' ', '+')}&apikey=${this.apiKey}`;
       let response = await this.getReq(url);
       const seriesData = await this.getReq(`https://api.tvmaze.com/singlesearch/shows?q=${this.searchTerm.replace(' ', '%20')}&embed=episodes`);
@@ -123,6 +147,12 @@ export default {
           }
         });
       }
+    },
+    async searchMovies () {
+      const url = `https://www.omdbapi.com/?t=${this.searchTerm.replace(' ', '+')}&apikey=${this.apiKey}`;
+      let response = await this.getReq(url);
+      this.searchData = response.imdbID;
+      console.log(this.searchData);
     },
     // a and b are javascript Date objects
     dateDiffInDays(a, b) {
